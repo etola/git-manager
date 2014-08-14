@@ -3,8 +3,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.getenv('HOME')+"/src/python/git_manager/"))
 
-from git_report_structure import *
-from utility              import *
+from gm_core import *
 
 if len(sys.argv) < 2:
     print
@@ -18,11 +17,12 @@ for arg in sys.argv:
         raw_out = True
 
 repo_name   = sys.argv[1]
-folder_path = get_expanded_path( repo_name )
 
-if is_valid_directory( folder_path ) is False:
+if is_valid_repo_dir( repo_name ) is False:
     print 'could not find repo [ ' + repo_name + ' ]'
     sys.exit(1)
+
+folder_path = get_repository_path( repo_name )
 
 g = generate_git_report( repo_name )
 
