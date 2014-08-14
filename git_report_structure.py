@@ -46,7 +46,7 @@ class GitReport:
         print
 
     def parse_last_commit_history( self ):
-        rc, git_hists = commands.getstatusoutput('git hists')
+        rc, git_hists = commands.getstatusoutput('git log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short --max-count=10')
         self.raw_hist = git_hists
         if rc != 0:
             return
