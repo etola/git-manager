@@ -134,26 +134,55 @@ def draw_repo_details( scr, g ):
 
 def draw_repo_man_screen( scr ):
     scr.erase()
-    y = 1
-    x = 2
+    y = 0
+    x = 0
     h,w = scr.getmaxyx()
     scr.addstr( y, x, 'Repositories', curses.color_pair(5) )
     scr.hline( y+1, x, curses.ACS_HLINE, w-2*x, curses.color_pair(5) )
 
     rpsz = LGD[1][1]
 
-    y = y + 2
+    # x = 2
+    # scr.vline( 3, x+rpsz+1, curses.ACS_VLINE, NR, curses.color_pair(5) )
+    # scr.vline( 3, x+rpsz+2 , curses.ACS_VLINE, NR, curses.color_pair(5) )
+
+    n_legs = len( LGD )
+
+    leg = LGD[0]
+    scr.addstr( y,   x,     ''.center(leg[1]), curses.A_STANDOUT )
+    scr.addstr( y+1, x,   'ID'.center(leg[1]), curses.A_STANDOUT )
+    scr.addstr( y+2, x,     ''.center(leg[1]), curses.A_STANDOUT )
+    x = x+leg[1]+1
+    scr.vline(  y,     x-1, curses.ACS_VLINE, 3 , curses.A_STANDOUT )
+    scr.vline(  y+3,   x-1, curses.ACS_VLINE, NR                    )
+
+    leg = LGD[1]
+    scr.addstr( y,   x,     ''.center(leg[1]), curses.A_STANDOUT )
+    scr.addstr( y+1, x,  leg[0].rjust(leg[1]), curses.A_STANDOUT )
+    scr.addstr( y+2, x,     ''.center(leg[1]), curses.A_STANDOUT )
+    x = x+leg[1]+1
+    scr.vline(  y,     x-1, curses.ACS_VLINE, 3 , curses.A_STANDOUT )
+    scr.vline(  y+3,   x-1, curses.ACS_VLINE, NR                    )
+
+    scr.addstr( y,   x,     ''.center(w-x), curses.A_STANDOUT )
+    scr.addstr( y+1, x, ' PATH'.ljust(w-x), curses.A_STANDOUT )
+    scr.addstr( y+2, x,     ''.center(w-x), curses.A_STANDOUT )
+
+    y = y + 3
     cnt = 0
     for repo in rep_names:
         g = G[cnt]
-        li = 0
         x = 0
         if g.repo_name == "":
-            scr.hline( y+cnt, x, curses.ACS_HLINE, w )
+            scr.hline( y+cnt, x, curses.ACS_HLINE, w-2*x, curses.color_pair(5) )
         else:
-            scr.addstr( y+cnt, x,        g.repo_name.rjust( rpsz ), curses.color_pair(5) )
-            scr.addstr( y+cnt, x+rpsz+1, g.path )
+            leg = LGD[0]
+            scr.addstr( y+cnt, x, (str(cnt)+' ').rjust(leg[1]) )
+            x = x + leg[1]+1
+            scr.addstr( y+cnt, x,  (g.repo_name+' ').rjust( rpsz ), curses.color_pair(5) )
+            scr.addstr( y+cnt, x+rpsz+2, g.path )
         cnt = cnt+1
+
 
 
 def show_message( scr, msg ):
@@ -206,6 +235,12 @@ def draw_footer( scr, st ):
     scr.hline ( h-3, 1, curses.ACS_HLINE, w-2, curses.color_pair(5) )
     scr.addstr( h-2, 1, ''.center(w),          curses.color_pair(5) )
     scr.addstr( h-2, 1, st,                    curses.color_pair(5) )
+
+def draw_selection( scr ):
+    scr.move( selected_rep_id+3, 0 )
+    curr_y, curr_x = scr.getyx()
+    scr.chgat( curr_y, curr_x+LGD[0][1]+2, LGD[1][1]-1, curses.color_pair(2) | curses.A_BOLD )
+    scr.move( 3+selected_rep_id, curr_x + LGD[0][1] + LGD[1][1] +1 )
 
 def draw_main( scr ):
     scr.erase()
@@ -266,11 +301,6 @@ def draw_main( scr ):
                 x = x + leg[1]+1
                 li = li+1
         cnt = cnt+1
-
-    scr.move( selected_rep_id+3, 0 )
-    curr_y, curr_x = scr.getyx()
-    scr.chgat( curr_y, curr_x+LGD[0][1]+2, LGD[1][1]-1, curses.color_pair(2) | curses.A_BOLD )
-    scr.move( 3+selected_rep_id, curr_x + LGD[0][1] + LGD[1][1] +1 )
 
 def cache_git_reports():
     global G
@@ -464,12 +494,14 @@ try:
 
             if active_screen == 0:
                 draw_main( main_pad )
+                draw_selection( main_pad )
                 ML.refresh( main_pad )
             elif active_screen == 1:
                 draw_repo_details( main_pad, G[selected_rep_id] )
                 ML.refresh( main_pad )
             elif active_screen == 3:
                 draw_repo_man_screen( main_pad )
+                draw_selection( main_pad )
                 ML.refresh( main_pad )
             elif active_screen == 2:
                 print 'cannot draw two pads in one small screen'
@@ -480,16 +512,19 @@ try:
 
             if active_screen == 2 or active_screen == 0 or active_screen == 1:
                 draw_main( main_pad )
+                draw_selection( main_pad )
                 draw_repo_details( supp_pad, G[selected_rep_id] )
                 S0.refresh( main_pad  )
                 S1.refresh( supp_pad )
             elif active_screen == 3:
                 draw_repo_man_screen( main_pad )
+                draw_selection( main_pad )
                 ML.refresh( main_pad )
 
         if dl == 1:
             draw_legend( leg_pad )
             L0.refresh( leg_pad )
+
 
         k = main_pad.getch()
 
