@@ -14,27 +14,41 @@ display mode of the manager.
 - Also, support for performing simple git operations on the repos, singly or in a
 batch manner will be implemented soon.
 
+- Adding and Removing repositories to track (editing of the .gmconfig file) will
+  be made through the interface in future versions
+
 
 file explanation
 ================
 
 git-manager-gui.py : interactive manager - curses based
 
-git-manager.py     : just reports the current state and exits - no curses, no interaction
+.gmconfig          : git manager gui is now configured through the ~/.gmconfig file.
 
-gm_resources.py : this is the file the repositories and the search directories
-                  to find these repos are defined. You need to modify these
-                  scripts for your own uses.
+                     - Adding a Repository:
+                        you can add your repos by adding entries like
+                        repo[kortex][/home/tola/src/cpp/lib/kortex]
+                        repo[KX-OCV][/home/tola/src/cpp/lib/kortex-ext-opencv]
+
+                        not found git repos will be skipped
+
+                     - Defining a remote:
+                       you can define remote names and symbols as:
+                         remote[HEAD][H]
+                         remote[borg][B]
+                         remote[local][L]
+
+                       symbols need to be single letters but it is not checked
+                       in this version...
 
 
 some tips:
 ==========
 
-- To display the keybindings, press 'h'
+- To display the keybindings, press 'l'
 
 - Repository information is cached once the application is started. To update it,
   press 'u'
-
 
 
 Some Example Screenshots:
@@ -48,5 +62,3 @@ Legend Overlay:
 
 Only Summary View is displayed if not enough space is available:
 ![Alt text](/imgs/gm-master-view.png?raw=true "Single View")
-
-
