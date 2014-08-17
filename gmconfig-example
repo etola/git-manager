@@ -1,9 +1,21 @@
-repo[repo_name][repo_full_path]
 repo[kortex][/home/tola/src/cpp/lib/kortex]
-repo[kortex-ext-3d][/home/tola/src/cpp/lib/kortex-ext-3d]
-repo[kortex-ext-calibration][/home/tola/src/cpp/lib/kortex-ext-calibration]
-repo[blender][/home/tola/src/cpp/applications/blender]
-repo[git-manager][/home/tola/src/python/git_manager]
+repo_d[kortex-ext-advanced][src/cpp/lib]
+repo_d[kortex-ext-3d][src/cpp/lib]
+repo_d[kortex-ext-calibration][src/cpp/lib]
+repo_d[kortex-ext-opencv][src/cpp/lib]
+repo_d[cosmos][src/cpp/lib]
+repo_d[karpet][src/cpp/lib]
+repo_d[kutility][src/cpp/lib]
+repo_d[argus][src/cpp/lib]
+repo_d[margus][src/cpp/lib]
+separator
+repo_d[git_manager][src/python]
+repo_d[shellscripts][src]
+separator
+repo_dir[/home/tola/src/cpp/applications][]
+separator
+repo_d[color-to-gray][src/cpp/applications-beta]
+repo_d[inpainting][src/cpp/applications-beta]
 
 remote[HEAD][H]
 remote[local][L]

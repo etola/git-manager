@@ -26,11 +26,39 @@ git-manager-gui.py : interactive manager - curses based
 .gmconfig          : git manager gui is now configured through the ~/.gmconfig file.
 
                      - Adding a Repository:
+
                         you can add your repos by adding entries like
+
                         repo[kortex][/home/tola/src/cpp/lib/kortex]
                         repo[KX-OCV][/home/tola/src/cpp/lib/kortex-ext-opencv]
 
-                        not found git repos will be skipped
+                        there are other ways to add repositories
+
+                        for example a repository named 'kortex' at location '/home/tola/src/cpp/lib/kortex'
+                        could be included using
+
+                        repo[kortex][/home/tola/src/cpp/lib/kortex]
+
+                        or
+
+                        repo_d[kortex][src/cpp/lib] --> looks inside ${HOME}
+
+                        if you have a master directory where you keep all your
+                        projects, you can add all the files under the directory
+                        using:
+
+                        repo_dir[/full/path/to/directory][]
+
+                        for example:
+
+                        repo_dir[/home/tola/src/cpp/applications][] adds
+
+                        everything
+
+                     - 'seperator' keyword:
+
+                        this keyword displays a horizontal line in the display
+                        for visual separation of repositories
 
                      - Defining a remote:
                        you can define remote names and symbols as:

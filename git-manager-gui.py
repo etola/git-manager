@@ -296,9 +296,10 @@ def draw_main( scr ):
 def cache_git_reports():
     global GRepos
     for (cnt, g) in enumerate( GRepos ):
-        GRepos[cnt].parse_status()
-        GRepos[cnt].parse_remote()
-        GRepos[cnt].parse_last_commit_history()
+        if g.repo_name != "":
+            GRepos[cnt].parse_status()
+            GRepos[cnt].parse_remote()
+            GRepos[cnt].parse_last_commit_history()
 
 def update_layouts():
     global ML, S0, S1, L0, display_mode
@@ -375,24 +376,46 @@ def load_config_file( path ):
     remote_symbols = []
 
     for r in f:
-        if r.strip() == "":
+        r = r.strip()
+        if r == "":
             continue
         if r[0] == '#':
-            print 'Skipping Comment: ['+r+']\n'
+            print 'Skipping Comment: ['+r+']'
             continue
-        regps = re.match( r'(.*)\[(.*)\]\[(.*)\]', r.strip(), re.M)
-        if regps:
-            if regps.group(1) == 'repo':
-                if is_valid_dir(regps.group(3)) is False:
-                    print 'Not a valid repo: ['+regps.group(2)+']['+regps.group(3)+'] - Skipping '
-                    continue
-                repo = GitReport()
-                repo.repo_name = regps.group(2)
-                repo.path      = regps.group(3)
-                G.append( repo )
-            if regps.group(1) == 'remote':
-                remotes.append( regps.group(2) )
-                remote_symbols.append( regps.group(3) )
+        elif r == 'separator':
+            repo = GitReport()
+            repo.repo_name = ""
+            repo.path      = ""
+            G.append(repo)
+        else :
+            regps = re.match( r'(.*)\[(.*)\]\[(.*)\]', r, re.M)
+            if regps:
+                if regps.group(1) == 'repo':
+                    if is_valid_dir(regps.group(3)) is False:
+                        print 'Not a valid repo: ['+regps.group(2)+']['+regps.group(3)+'] - Skipping '
+                        continue
+                    repo = GitReport()
+                    repo.repo_name = regps.group(2)
+                    repo.path      = regps.group(3)
+                    G.append( repo )
+                if regps.group(1) == 'remote':
+                    remotes.append( regps.group(2) )
+                    remote_symbols.append( regps.group(3) )
+                if regps.group(1) == 'repo_dir':
+                    folder = regps.group(2)
+                    rnames = get_folders( folder )
+                    for x in rnames:
+                        repo = GitReport()
+                        repo.repo_name = x
+                        repo.path      = folder + '/' + x
+                        G.append( repo )
+                if regps.group(1) == 'repo_d':
+                    folder = get_home()+'/'+regps.group(3)
+                    repo = GitReport()
+                    repo.repo_name = regps.group(2)
+                    repo.path      = folder + '/' + regps.group(2)
+                    G.append( repo )
+
 
     return G, remotes, remote_symbols
 
