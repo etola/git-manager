@@ -537,7 +537,7 @@ try:
             show_message( main_pad, 'Updating Repo Info')
             cache_git_reports()
 
-        elif k == ord('l'):
+        elif k == ord('l') or k == ord('h'):
             dl = (dl+1)%2
             if dl==0:
                 L0.erase()
