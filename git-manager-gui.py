@@ -303,7 +303,7 @@ def draw_main( scr ):
         cnt = cnt+1
 
 def cache_git_reports():
-    global G
+    global G, rep_names
     c = 0
     for repo in rep_names:
         G[c] = generate_git_report( repo )
@@ -365,6 +365,42 @@ def update_layouts():
     S0.erase()
     S1.erase()
 
+
+def load_config_file( path ):
+    if is_valid_file(path) is False:
+        print 'no such file - generating the prototype'
+        f = open( path, 'w' )
+        f.write('repo['+'repo_name'+'][repo_full_path]' '\n')
+        f.close()
+        return None
+
+    f = open( path, 'r+' )
+
+    G = []
+    rep_names = []
+
+    for r in f:
+        if r.strip() == "":
+            continue
+        if r[0] == '#':
+            print 'Skipping Comment: ['+r+']\n'
+            continue
+        regps = re.match( r'(.*)\[(.*)\]\[(.*)\]', r.strip(), re.M)
+
+        if regps:
+            if regps.group(1) == 'repo':
+                if is_valid_repo_dir(regps.group(2)) is False:
+                    print 'Not a valid repo: ['+regps.group(2)+']['+regps.group(3)+'] - Skipping '
+                    continue
+                repo = GitReport()
+                repo.repo_name = regps.group(2)
+                repo.path      = regps.group(3)
+                G.append( repo )
+                rep_names.append( regps.group(2) )
+
+    return G, rep_names
+
+
 #
 # initialize main window legend
 #
@@ -382,8 +418,9 @@ LGD = ( ('ID '           , 4 , 'Right'),
         ('Dirty'        , 10, 'Center') )
 
 
+Gn, rep_names = load_config_file( get_home()+'/.gmconfig' )
 
-rep_names = get_repositories()
+# rep_names = get_repositories()
 NR  = len( rep_names )
 G = [None] * NR
 
@@ -392,6 +429,8 @@ lgw = 80
 
 mw = 73
 selected_rep_id = 0
+
+
 
 try:
     stdscr = curses.initscr()

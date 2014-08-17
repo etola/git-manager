@@ -11,3 +11,6 @@ def get_home():
 def is_valid_dir( path ):
     return os.path.isdir( path )
 
+def is_valid_file( path ):
+    return os.path.isfile( path )
+

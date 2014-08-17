@@ -91,6 +91,9 @@ def git_push_projects( repo_names, branch_name, remote_name ):
     print smsg
 
 def generate_git_report( repo_name ):
+    if is_valid_repo_dir( repo_name ) is False:
+        return None
+
     g = GitReport()
     g.repo_name = repo_name
     g.path = get_repository_path( repo_name )
