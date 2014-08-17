@@ -3,7 +3,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.getenv('HOME')+"/src/python/git_manager/"))
 
-from gm_core import *
+from gm_custom import *
 
 if len(sys.argv) < 2:
     print

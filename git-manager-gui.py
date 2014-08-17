@@ -2,7 +2,8 @@
 
 import sys, os, curses, re, math
 
-from gm_core              import *
+from git_report_structure import *
+from utility              import *
 
 class Layout:
     def __init__(self):
@@ -54,7 +55,6 @@ def rep_state( rname, rlist, tval ):
 
 def repo_remote_state( g ):
     msg =  ''
-    remotes, remote_symbols = get_remote_names()
     cnt = 0
     for remote in remotes:
         rsymbol = remote_symbols[cnt]
@@ -142,10 +142,6 @@ def draw_repo_man_screen( scr ):
 
     rpsz = LGD[1][1]
 
-    # x = 2
-    # scr.vline( 3, x+rpsz+1, curses.ACS_VLINE, NR, curses.color_pair(5) )
-    # scr.vline( 3, x+rpsz+2 , curses.ACS_VLINE, NR, curses.color_pair(5) )
-
     n_legs = len( LGD )
 
     leg = LGD[0]
@@ -170,8 +166,7 @@ def draw_repo_man_screen( scr ):
 
     y = y + 3
     cnt = 0
-    for repo in rep_names:
-        g = G[cnt]
+    for g in GRepos:
         x = 0
         if g.repo_name == "":
             scr.hline( y+cnt, x, curses.ACS_HLINE, w-2*x, curses.color_pair(5) )
@@ -213,9 +208,6 @@ def draw_legend( scr ):
     scr.hline ( y+1, x, curses.ACS_HLINE, w-2*x, curses.color_pair(5) )
 
     y = y+1
-
-
-    remotes, remote_symbols = get_remote_names()
 
     cnt = 0
     for remote in remotes:
@@ -274,8 +266,7 @@ def draw_main( scr ):
     y = y + 3
 
     cnt = 0
-    for repo in rep_names:
-        g = G[cnt]
+    for g in GRepos:
         li = 0
         x = 0
         if g.repo_name == "":
@@ -285,7 +276,7 @@ def draw_main( scr ):
                 if li == 0:
                     scr.addstr( y+cnt, x, (str(cnt)+' ').rjust(leg[1]) )
                 elif li == 1:
-                    scr.addstr( y+cnt, x, (repo+' ').rjust(leg[1]) )
+                    scr.addstr( y+cnt, x, (g.repo_name+' ').rjust(leg[1]) )
                 elif li == 2:
                     scr.addstr( y+cnt, x, repo_remote_state(g).center(leg[1]) )
                 elif li == 3:
@@ -303,12 +294,11 @@ def draw_main( scr ):
         cnt = cnt+1
 
 def cache_git_reports():
-    global G, rep_names
-    c = 0
-    for repo in rep_names:
-        G[c] = generate_git_report( repo )
-        c = c+1
-
+    global GRepos
+    for (cnt, g) in enumerate( GRepos ):
+        GRepos[cnt].parse_status()
+        GRepos[cnt].parse_remote()
+        GRepos[cnt].parse_last_commit_history()
 
 def update_layouts():
     global ML, S0, S1, L0, display_mode
@@ -368,16 +358,21 @@ def update_layouts():
 
 def load_config_file( path ):
     if is_valid_file(path) is False:
-        print 'no such file - generating the prototype'
+        print 'coud not find ['+path+'] - generating dummy prototype '
+        print 'there is an example .gmconfig file named gmconfig-example in the git_manager directory'
         f = open( path, 'w' )
         f.write('repo['+'repo_name'+'][repo_full_path]' '\n')
+        f.write('remote['+'HEAD'+'][H]' '\n')
+        f.write('remote['+'local'+'][L]' '\n')
         f.close()
+        sys.exit(1)
         return None
 
     f = open( path, 'r+' )
 
     G = []
-    rep_names = []
+    remotes = []
+    remote_symbols = []
 
     for r in f:
         if r.strip() == "":
@@ -386,25 +381,29 @@ def load_config_file( path ):
             print 'Skipping Comment: ['+r+']\n'
             continue
         regps = re.match( r'(.*)\[(.*)\]\[(.*)\]', r.strip(), re.M)
-
         if regps:
             if regps.group(1) == 'repo':
-                if is_valid_repo_dir(regps.group(2)) is False:
+                if is_valid_dir(regps.group(3)) is False:
                     print 'Not a valid repo: ['+regps.group(2)+']['+regps.group(3)+'] - Skipping '
                     continue
                 repo = GitReport()
                 repo.repo_name = regps.group(2)
                 repo.path      = regps.group(3)
                 G.append( repo )
-                rep_names.append( regps.group(2) )
+            if regps.group(1) == 'remote':
+                remotes.append( regps.group(2) )
+                remote_symbols.append( regps.group(3) )
 
-    return G, rep_names
+    return G, remotes, remote_symbols
 
 
 #
 # initialize main window legend
 #
-remotes, remote_symbols = get_remote_names()
+GRepos, remotes, remote_symbols = load_config_file( get_home()+'/.gmconfig' )
+cache_git_reports()
+
+
 remote_header = ''
 for rsym in remote_symbols:
     remote_header += rsym
@@ -417,12 +416,26 @@ LGD = ( ('ID '           , 4 , 'Right'),
         ('Branch'        , 8 , 'Center'),
         ('Dirty'        , 10, 'Center') )
 
+NR  = len( GRepos )
+if NR == 0:
+    print ' No repo configured'
+    print
+    print ' Create the ~/.gmconfig file and add entries like:'
+    print
+    print '     repo[repo_name][repo_full_path]'
+    print '     remote[remote_name][remote_symbol]'
+    print
+    print ' For example:'
+    print
+    print '     repo[kortex][/home/tola/src/cpp/lib/kortex]'
+    print '     repo[KX-OCV][/home/tola/src/cpp/lib/kortex-ext-opencv]'
+    print '     remote[HEAD][H]'
+    print '     remote[borg][B]'
+    print '     remote[local][L]'
+    print
+    print
+    sys.exit(1)
 
-Gn, rep_names = load_config_file( get_home()+'/.gmconfig' )
-
-# rep_names = get_repositories()
-NR  = len( rep_names )
-G = [None] * NR
 
 lgh = 20
 lgw = 80
@@ -431,8 +444,8 @@ mw = 73
 selected_rep_id = 0
 
 
-
 try:
+
     stdscr = curses.initscr()
     curses.cbreak()
     curses.noecho()
@@ -469,10 +482,8 @@ try:
 
     update_layouts()
 
-    cache_git_reports()
-    # main_pad.border(0)
     draw_main( main_pad )
-    draw_repo_details( supp_pad, G[selected_rep_id] )
+    draw_repo_details( supp_pad, GRepos[selected_rep_id] )
 
     update_main = False
 
@@ -490,7 +501,7 @@ try:
             selected_rep_id = selected_rep_id + 1
             if selected_rep_id >= NR-1:
                 selected_rep_id=NR-1
-            if G[selected_rep_id].repo_name == "":
+            if GRepos[selected_rep_id].repo_name == "":
                 selected_rep_id=selected_rep_id+1
             if selected_rep_id >= NR-1:
                 selected_rep_id=NR-1
@@ -499,16 +510,18 @@ try:
             selected_rep_id = selected_rep_id - 1
             if selected_rep_id < 0:
                 selected_rep_id=0
-            if G[selected_rep_id].repo_name == "":
+            if GRepos[selected_rep_id].repo_name == "":
                 selected_rep_id=selected_rep_id-1
             if selected_rep_id < 0:
                 selected_rep_id=0
 
-
-        elif k == ord('d') and display_mode == 'single':
-            if active_screen == 1:
-                active_screen = 0
-            elif active_screen == 0:
+        elif k == ord('d'):
+            if display_mode == 'single':
+                if active_screen == 1:
+                    active_screen = 0
+                elif active_screen == 0:
+                    active_screen = 1
+            if active_screen == 3:
                 active_screen = 1
             update_layouts()
 
@@ -536,7 +549,7 @@ try:
                 draw_selection( main_pad )
                 ML.refresh( main_pad )
             elif active_screen == 1:
-                draw_repo_details( main_pad, G[selected_rep_id] )
+                draw_repo_details( main_pad, GRepos[selected_rep_id] )
                 ML.refresh( main_pad )
             elif active_screen == 3:
                 draw_repo_man_screen( main_pad )
@@ -552,7 +565,7 @@ try:
             if active_screen == 2 or active_screen == 0 or active_screen == 1:
                 draw_main( main_pad )
                 draw_selection( main_pad )
-                draw_repo_details( supp_pad, G[selected_rep_id] )
+                draw_repo_details( supp_pad, GRepos[selected_rep_id] )
                 S0.refresh( main_pad  )
                 S1.refresh( supp_pad )
             elif active_screen == 3:

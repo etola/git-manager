@@ -1,7 +1,7 @@
 #! /usr/bin/python
 import sys
 
-from gm_core import git_push_remotes
+from gm_custom import git_push_remotes
 
 argc = len(sys.argv)
 if argc < 3:

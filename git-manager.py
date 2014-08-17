@@ -1,8 +1,6 @@
 #! /usr/bin/env python
-
 import os, sys, string, math, commands
-
-from gm_core import *
+from gm_custom import *
 
 def rep_state( rname, rlist, tval ):
     if rname in rlist:

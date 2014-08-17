@@ -9,7 +9,7 @@ def is_valid_repo_dir( repo_name ):
     return is_valid_dir( rep_dir )
 
 def is_valid_remote( rname ):
-    remotes = get_remote_names()
+    remotes, rsyms = get_remote_names()
     if rname in remotes:
         return True
     else :

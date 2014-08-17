@@ -1,7 +1,7 @@
 #! /usr/bin/python
 import sys
 
-from gm_core import git_push_projects
+from gm_custom import *
 
 argc = len(sys.argv)
 if argc < 3:

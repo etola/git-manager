@@ -3,8 +3,8 @@
 import os, sys, string, math
 import commands
 
-from gm_resources import *
-from gm_core      import *
+# from gm_resources import *
+from gm_custom    import *
 
 sys.path.append(os.path.abspath(os.getenv('HOME')+"/src/python/git_manager/"))
 
