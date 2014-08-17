@@ -156,17 +156,30 @@ def draw_repo_man_screen( scr ):
         cnt = cnt+1
 
 
+def show_message( scr, msg ):
+    global display_mode
+    scr.erase()
+    if display_mode == 'single':
+        scr.addstr( ML.h()/2, max(0,ML.w()/2-len(msg)/2), msg, curses.color_pair(2) )
+        ML.refresh( scr )
+    elif display_mode == 'split':
+        scr.addstr( S0.h()/2, max(0,S0.w()/2-len(msg)/2), msg, curses.color_pair(2) )
+        S0.refresh( scr )
+
+
 def draw_legend( scr ):
     y = 1
     x = 2
     h,w = scr.getmaxyx()
     scr.addstr( y, x, 'Keybindings', curses.color_pair(5) )
     scr.hline ( y+1, x, curses.ACS_HLINE, w-2*x, curses.color_pair(5) )
-    scr.addstr( y+2, x+5, 'd'.ljust(5)+': detailed output for repo toggle' )
-    scr.addstr( y+3, x+5, 'u'.ljust(5)+': update git reports' )
-    scr.addstr( y+4, x+5, 'r'.ljust(5)+': repository view' )
+    scr.addstr( y+2, x+5, 'm'.ljust(5)+': return to main screen' )
+    scr.addstr( y+3, x+5, 'd'.ljust(5)+': detailed output for repo toggle (possible only in single view)' )
+    scr.addstr( y+4, x+5, 'u'.ljust(5)+': update git reports' )
+    scr.addstr( y+5, x+5, 'r'.ljust(5)+': repository management view' )
+    scr.addstr( y+6, x+5, 'l'.ljust(5)+': display legend - toggles' )
 
-    y = y + 6
+    y = y + 8
     scr.addstr( y, x, 'Legend', curses.color_pair(5) )
     scr.hline ( y+1, x, curses.ACS_HLINE, w-2*x, curses.color_pair(5) )
 
@@ -268,10 +281,9 @@ def cache_git_reports():
 
 
 def update_layouts():
-    global ML, S0, S1, display_mode
+    global ML, S0, S1, L0, display_mode
     global main_pad
     global supp_pad
-
 
     h,w = stdscr.getmaxyx()
     if w < 140:
@@ -279,15 +291,17 @@ def update_layouts():
     else:
         display_mode = 'split'
 
+    assert w>mw, 'Require a window bigger than width %r - Got only %r' % (mw, w)
+
+
     if display_mode == 'single':
         S0.update_screen_coords( 0, h-1, 0, mw     )
         S1.update_screen_coords( 0, h-1, mw, w-1 )
 
         if active_screen == 0:
             main_pad = curses.newpad( pad_h, mw )
-
-            sw = (w-1-mw)/2+1
-            sh = (h-1-(NR+3))/2
+            sw = (w-mw)/2
+            sh = (h-(NR+3))/2
 
             ML.update_screen_coords( max(0,sh), min(h-1,sh+NR+3), max(0,sw), min(w-1,sw+mw) )
 
@@ -308,6 +322,12 @@ def update_layouts():
             supp_pad = curses.newpad( pad_h, w-mw )
         elif active_screen == 3:
             main_pad = curses.newpad( pad_h, w-1 )
+
+    if h < lgh or w < lgw:
+        leg_pad = curses.newpad( h, w )
+    sh = (h-1-lgh)/2
+    sw = (w-1-lgw)/2
+    L0.update_screen_coords( max(0,sh), min(h-1,sh+lgh), max(0,sw), min(w-1,sw+lgw) )
 
     main_pad.keypad(True)
 
@@ -337,6 +357,9 @@ rep_names = get_repositories()
 NR  = len( rep_names )
 G = [None] * NR
 
+lgh = 20
+lgw = 80
+
 mw = 73
 selected_rep_id = 0
 
@@ -364,10 +387,13 @@ try:
     supp_pad.border(0)
     supp_pad.addstr(0, 0, 'support' )
 
+    leg_pad = curses.newpad(lgh,lgw)
+    leg_pad.border(0)
 
     ML = Layout()
     S0 = Layout()
     S1 = Layout()
+    L0 = Layout()
 
     active_screen = 0
     display_mode = 'single'
@@ -381,7 +407,7 @@ try:
 
     update_main = False
 
-
+    dl = 0
     k = 0
     while k!= ord('q'):
 
@@ -425,6 +451,14 @@ try:
             active_screen = 0
             update_layouts()
 
+        elif k == ord('u'):
+            show_message( main_pad, 'Updating Repo Info')
+            cache_git_reports()
+
+        elif k == ord('l'):
+            dl = (dl+1)%2
+            if dl==0:
+                L0.erase()
 
         if display_mode == 'single':
 
@@ -452,6 +486,10 @@ try:
             elif active_screen == 3:
                 draw_repo_man_screen( main_pad )
                 ML.refresh( main_pad )
+
+        if dl == 1:
+            draw_legend( leg_pad )
+            L0.refresh( leg_pad )
 
         k = main_pad.getch()
 
