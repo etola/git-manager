@@ -85,7 +85,7 @@ class GitReport:
         else:
             self.isrepo = 1
         if report.find('branch') != -1:
-            reout = re.search(r'branch (\w+)',report)
+            reout = re.search(r'branch (.*)',report)
             if reout:
                 self.branch = reout.group(1)
 

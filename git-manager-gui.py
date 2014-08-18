@@ -430,14 +430,18 @@ cache_git_reports()
 remote_header = ''
 for rsym in remote_symbols:
     remote_header += rsym
-LGD = ( ('ID '           , 4 , 'Right'),
+LGD = ( ('ID '           ,  4, 'Right'),
         ('Repositories ' , 25, 'Right'),
         (remote_header   , 10, 'Center'),
-        ('S '            , 3 , 'Right'),
-        ('C '            , 3 , 'Right'),
-        ('U '            , 3 , 'Right'),
-        ('Branch'        , 8 , 'Center'),
-        ('Dirty'        , 10, 'Center') )
+        ('S '            ,  3, 'Right'),
+        ('C '            ,  3, 'Right'),
+        ('U '            ,  3, 'Right'),
+        ('Branch'        , 10, 'Center'),
+        ('Dirty'        ,  10, 'Center') )
+
+mw = len( LGD )-1
+for (i, leg) in enumerate( LGD ):
+    mw += leg[1]
 
 NR  = len( GRepos )
 if NR == 0:
@@ -463,7 +467,6 @@ if NR == 0:
 lgh = 20
 lgw = 80
 
-mw = 73
 selected_rep_id = 0
 
 
