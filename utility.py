@@ -5,6 +5,10 @@ def get_folders(root_dir):
     folders = [ name for name in os.listdir(root_dir) if os.path.isdir(os.path.join(root_dir, name)) ]
     return folders
 
+def get_files(root_dir):
+    files = [ name for name in os.listdir(root_dir) if os.path.isfile(os.path.join(root_dir, name)) ]
+    return files
+
 def get_home():
     return os.path.abspath(os.getenv('HOME'))
 

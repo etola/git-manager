@@ -5,6 +5,8 @@ import sys, os, curses, re, math
 from git_report_structure import *
 from utility              import *
 
+CONFIG_FILE = get_home() + '/.gmconfig'
+
 class Layout:
     def __init__(self):
         self.xs  = 0      # screen coordinates
@@ -61,6 +63,56 @@ def repo_remote_state( g ):
         msg += rep_state( remote, g.lcsyncrem, rsymbol )
         cnt += 1
     return msg
+
+def add_new_repo( scr ):
+    global msg_pad
+    curses.echo()
+    h,w=scr.getmaxyx()
+
+    scr.hline( h-2, 0, curses.ACS_HLINE, w, curses.color_pair(5) )
+    scr.addstr( h-1, 0, 'repo-name: ',  curses.color_pair(2) )
+
+    rname = scr.getstr(h-1,11,20)
+
+    cname = re.sub( r'[^A-Za-z \-]', '', rname )
+
+    if rname != re.sub( r'[^A-Za-z \-]', '', rname ):
+        msg_pad.addstr( 1, 0, 'cancelled input - not a valid name ['+rname+']', curses.color_pair(2) )
+    else:
+        if rname == '----':
+            msg_pad.addstr( 1, 0, 'adding separator' )
+            config_file_add_new_repo( '----', None )
+            reload_repos()
+        else:
+
+            scr.addstr( h-1, len(rname)+12, 'repo-address: ~/',  curses.color_pair(2) )
+            rpath = get_home() + '/' + scr.getstr(h-1,len(rname)+28,w-30-len(rname)) # Creates an "input box" at the location (0,1) with an input buffer of 15 chars
+
+            if is_valid_dir(rpath) is True:
+                msg_pad.addstr( 1, 0, 'added rule repo['+rname+']['+rpath+'] to the '+CONFIG_FILE, curses.A_STANDOUT );
+                config_file_add_new_repo( rname, rpath )
+                reload_repos()
+            else:
+                msg_pad.addstr( 1, 0, 'not a valid path ['+rpath+'] - not added', curses.color_pair(2) )
+
+    curses.noecho()
+
+def get_input( scr ):
+    global msg_pad
+    curses.echo()            # Allows out input to be echo'd to the screen
+
+    # draw_content()
+    # draw_main( scr )
+    # scr.refresh()
+    h,w=scr.getmaxyx()
+
+    scr.hline( h-2, 0, curses.ACS_HLINE, w, curses.color_pair(5) )
+
+    cmd = scr.getstr(h-1,1,15) # Creates an "input box" at the location (0,1) with an input buffer of 15 chars
+    curses.noecho() # Turns echo back off
+
+    msg_pad.addstr( 1, 0, cmd, curses.color_pair(2) )
+
 
 def render_text( scr, text, y, x, h, w ):
 
@@ -302,9 +354,8 @@ def cache_git_reports():
             GRepos[cnt].parse_last_commit_history()
 
 def update_layouts():
-    global ML, S0, S1, L0, display_mode
-    global main_pad
-    global supp_pad
+    global ML, S0, S1, L0, F0, display_mode
+    global main_pad, supp_pad, msg_pad
 
     h,w = stdscr.getmaxyx()
     if w < 140:
@@ -323,16 +374,13 @@ def update_layouts():
             main_pad = curses.newpad( pad_h, mw )
             sw = (w-mw)/2
             sh = (h-(NR+3))/2
-
             ML.update_screen_coords( max(0,sh), min(h-1,sh+NR+3), max(0,sw), min(w-1,sw+mw) )
-
         elif active_screen == 1:
             main_pad = curses.newpad( pad_h, w  )
             ML.update_screen_coords( 0, h-1, 0, w-1 )
         elif active_screen == 3:
             main_pad = curses.newpad( pad_h, w  )
             ML.update_screen_coords( 0, h-1, 0, w-1 )
-
     else:
         ML.update_screen_coords( 0, h-1, 0, w-1 )
         S0.update_screen_coords( 0, h-1, 0, mw     )
@@ -343,6 +391,9 @@ def update_layouts():
             supp_pad = curses.newpad( pad_h, w-mw )
         elif active_screen == 3:
             main_pad = curses.newpad( pad_h, w-1 )
+
+    msg_pad = curses.newpad( min(h,msg_h), w )
+    F0.update_screen_coords( max(0,h-msg_h), h-1, 0, w-1 )
 
     if h < lgh or w < lgw:
         leg_pad = curses.newpad( h, w )
@@ -355,13 +406,60 @@ def update_layouts():
     ML.erase()
     S0.erase()
     S1.erase()
+    F0.erase()
 
+def draw_content():
+    global main_pad, supp_pad
+    global ML, S0, S1
 
-def load_config_file( path ):
-    if is_valid_file(path) is False:
-        print 'coud not find ['+path+'] - generating dummy prototype '
+    if display_mode == 'single':
+        if active_screen == 0:
+            draw_main( main_pad )
+            draw_selection( main_pad )
+            ML.refresh( main_pad )
+        elif active_screen == 1:
+            draw_repo_details( main_pad, GRepos[selected_rep_id] )
+            ML.refresh( main_pad )
+        elif active_screen == 3:
+            draw_repo_man_screen( main_pad )
+            draw_selection( main_pad )
+            ML.refresh( main_pad )
+        elif active_screen == 2:
+            print 'cannot draw two pads in one small screen'
+            print 'should not have entered this loop'
+            assert( 0 > 1 )
+
+    elif display_mode == 'split':
+        if active_screen == 2 or active_screen == 0 or active_screen == 1:
+            draw_main( main_pad )
+            draw_selection( main_pad )
+            draw_repo_details( supp_pad, GRepos[selected_rep_id] )
+            S0.refresh( main_pad  )
+            S1.refresh( supp_pad )
+        elif active_screen == 3:
+            draw_repo_man_screen( main_pad )
+            draw_selection( main_pad )
+            ML.refresh( main_pad )
+
+def config_file_add_new_repo( repo_name, repo_path ):
+    f = open( CONFIG_FILE, 'a' )
+    if repo_path == None and repo_name == '----':
+        f.write( 'separator\n' )
+    else:
+        f.write( 'repo['+repo_name+']['+repo_path+']\n' )
+    f.close()
+
+def reload_repos():
+    global GRepos, remotes, remote_symbols, NR
+    GRepos, remotes, remote_symbols = load_config_file()
+    cache_git_reports()
+
+def load_config_file():
+    global NR
+    if is_valid_file(CONFIG_FILE) is False:
+        print 'could not find ['+CONFIG_FILE+'] - generating dummy prototype '
         print 'there is an example .gmconfig file named gmconfig-example in the git_manager directory'
-        f = open( path, 'w' )
+        f = open( CONFIG_FILE, 'w' )
         f.write('repo['+'repo_name'+'][repo_full_path]' '\n')
         f.write('remote['+'HEAD'+'][H]' '\n')
         f.write('remote['+'local'+'][L]' '\n')
@@ -369,7 +467,7 @@ def load_config_file( path ):
         sys.exit(1)
         return None
 
-    f = open( path, 'r+' )
+    f = open( CONFIG_FILE, 'r+' )
 
     G = []
     remotes = []
@@ -416,14 +514,17 @@ def load_config_file( path ):
                     repo.path      = folder + '/' + regps.group(2)
                     G.append( repo )
 
-
+    NR  = len( G )
+    f.close()
     return G, remotes, remote_symbols
 
 
 #
 # initialize main window legend
 #
-GRepos, remotes, remote_symbols = load_config_file( get_home()+'/.gmconfig' )
+NR = 0
+GRepos, remotes, remote_symbols = load_config_file()
+
 cache_git_reports()
 
 
@@ -443,11 +544,11 @@ mw = len( LGD )-1
 for (i, leg) in enumerate( LGD ):
     mw += leg[1]
 
-NR  = len( GRepos )
+
 if NR == 0:
     print ' No repo configured'
     print
-    print ' Create the ~/.gmconfig file and add entries like:'
+    print ' Create the '+CONFIG_FILE+' file and add entries like:'
     print
     print '     repo[repo_name][repo_full_path]'
     print '     remote[remote_name][remote_symbol]'
@@ -463,6 +564,8 @@ if NR == 0:
     print
     sys.exit(1)
 
+msg_h = 2
+msg_w = 80
 
 lgh = 20
 lgw = 80
@@ -473,6 +576,7 @@ selected_rep_id = 0
 try:
 
     stdscr = curses.initscr()
+    stdscr.erase()
     curses.cbreak()
     curses.noecho()
 
@@ -498,18 +602,19 @@ try:
     leg_pad = curses.newpad(lgh,lgw)
     leg_pad.border(0)
 
+    msg_pad = curses.newpad( msg_h, w )
+
     ML = Layout()
     S0 = Layout()
     S1 = Layout()
     L0 = Layout()
+    F0 = Layout()
 
     active_screen = 0
     display_mode = 'single'
 
     update_layouts()
-
-    draw_main( main_pad )
-    draw_repo_details( supp_pad, GRepos[selected_rep_id] )
+    stdscr.refresh()
 
     update_main = False
 
@@ -522,6 +627,7 @@ try:
 
         if k == curses.KEY_RESIZE:
             update_layouts()
+            stdscr.refresh() # makes sure during get_input screen is not empty
 
         elif k == curses.KEY_DOWN:
             selected_rep_id = selected_rep_id + 1
@@ -568,43 +674,29 @@ try:
             if dl==0:
                 L0.erase()
 
-        if display_mode == 'single':
+        elif k == ord('c'):
+            get_input( stdscr )
 
-            if active_screen == 0:
-                draw_main( main_pad )
-                draw_selection( main_pad )
-                ML.refresh( main_pad )
-            elif active_screen == 1:
-                draw_repo_details( main_pad, GRepos[selected_rep_id] )
-                ML.refresh( main_pad )
-            elif active_screen == 3:
-                draw_repo_man_screen( main_pad )
-                draw_selection( main_pad )
-                ML.refresh( main_pad )
-            elif active_screen == 2:
-                print 'cannot draw two pads in one small screen'
-                print 'should not have entered this loop'
-                assert( 0 > 1 )
+        elif active_screen == 3 and k == ord('a'):
+            add_new_repo( stdscr )
 
-        elif display_mode == 'split':
-
-            if active_screen == 2 or active_screen == 0 or active_screen == 1:
-                draw_main( main_pad )
-                draw_selection( main_pad )
-                draw_repo_details( supp_pad, GRepos[selected_rep_id] )
-                S0.refresh( main_pad  )
-                S1.refresh( supp_pad )
-            elif active_screen == 3:
-                draw_repo_man_screen( main_pad )
-                draw_selection( main_pad )
-                ML.refresh( main_pad )
+        draw_content()
 
         if dl == 1:
             draw_legend( leg_pad )
             L0.refresh( leg_pad )
 
+        h,w = stdscr.getmaxyx()
+        msg_pad.hline( 0, 0, curses.ACS_HLINE, w, curses.color_pair(5) )
+        msg_pad.addstr( 0, 0, str(NR) )
+
+        msg_pad.addstr( 1, w-4, str(w) )
+        F0.refresh( msg_pad )
+        # curses.napms(100)
 
         k = main_pad.getch()
+        msg_pad.erase()
+        # F0.erase()
 
 finally:
     curses.nocbreak()
