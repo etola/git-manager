@@ -19,9 +19,14 @@ def get_repositories():
     app_names = get_folders( get_home() + '/src/cpp/applications')
     rep_names.extend( app_names )
 
-    rep_names.extend( [ "", "color-to-gray", "skanner", "levmar"] )
+    rep_names.extend( [ "" ] )
+    app_extra_names = get_folders( get_home() + '/src/cpp/applications-beta' );
+    rep_names.extend( app_extra_names )
+
+    # rep_names.extend( [ "", "color-to-gray", "skanner", "levmar"] )
     rep_names.extend( [ "", "shellscripts" ] )
     rep_names.extend( [ "", "git_manager" ] )
+    rep_names.extend( [ "", "makefile-heaven" ] )
 
     return rep_names
 
@@ -31,6 +36,7 @@ def get_repositories_search_dirs():
                      homedir + '/src/cpp/applications/',
                      homedir + '/src/cpp/applications-beta/',
                      homedir + '/src/python/',
+                     homedir + '/src/cpp/',
                      homedir + '/src/' ]
     return search_paths
 
