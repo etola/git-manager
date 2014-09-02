@@ -22,6 +22,24 @@ class GitReport:
         self.raw_hist    = ''
         self.raw_remotes = ''
 
+    def clear(self):
+        self.isrepo    = -1
+        self.commit    = -1
+        self.wdc       = -1
+        self.branch    = ''
+        self.ufiles    = '' # untracked files
+        self.cfiles    = '' # changed files
+        self.sfiles    = '' # staged files
+        self.remotes   = '' # remote repos
+        self.lcdate    = '' # last commit date
+        self.lcuser    = '' # last commit user
+        self.lcmsg     = '' # last commit message
+        self.lcrev     = '' # last commit revision id
+        self.lcsyncrem = '' # last commit synced remotes
+        self.raw_status  = ''
+        self.raw_hist    = ''
+        self.raw_remotes = ''
+
     def display(self):
         kwd_sz = 30
         print
