@@ -349,6 +349,7 @@ def cache_git_reports():
     global GRepos
     for (cnt, g) in enumerate( GRepos ):
         if g.repo_name != "":
+            GRepos[cnt].clear()
             GRepos[cnt].parse_status()
             GRepos[cnt].parse_remote()
             GRepos[cnt].parse_last_commit_history()
