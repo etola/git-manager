@@ -1,4 +1,7 @@
 #! /usr/bin/env python
+import os, sys, string, math
+
+sys.path.append(os.path.abspath(os.getenv('HOME')+"/src/python/git_manager/"))
 
 from git_report_structure import *
 from gm_resources         import *

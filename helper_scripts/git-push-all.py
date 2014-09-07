@@ -6,7 +6,7 @@ import commands
 # from gm_resources import *
 from gm_custom    import *
 
-sys.path.append(os.path.abspath(os.getenv('HOME')+"/src/python/git_manager/"))
+sys.path.append(os.path.abspath(os.getenv('HOME')+"/src/python/git_manager/helper_scripts/"))
 
 if len(sys.argv) != 2:
     print 'usage: ' + sys.argv[0] + ' remote_name'
