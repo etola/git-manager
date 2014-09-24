@@ -5,8 +5,7 @@ from utility import get_folders, get_home
 def get_repositories():
     rep_names = [ "kortex",
               "kortex-ext-advanced",
-              "kortex-ext-3d",
-              "kortex-ext-calibration",
+              "kortex-ext-calib",
               "kortex-ext-opencv",
               "cosmos",
               "karpet",
@@ -43,13 +42,15 @@ def get_repositories_search_dirs():
 def get_remote_names():
     remotes = [ 'HEAD',
                 'local',
+                'arctic',
+                'antarctic',
                 'borg',
                 'cruzer',
                 'github',
                 'echelon',
-                'enterprise',
-                'pegasus' ]
+                'pegasus',
+                'vault' ]
 
-    remote_symbols = [ 'H', 'L', 'B', 'C', 'G', 'E', 'N', 'P' ]
+    remote_symbols = [ 'H', 'L', 'A', 'N', 'B', 'C', 'G', 'E', 'P' ]
 
     return remotes, remote_symbols

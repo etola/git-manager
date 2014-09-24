@@ -104,3 +104,6 @@ def generate_git_report( repo_name ):
     g.parse_remote()
     g.parse_last_commit_history()
     return g
+
+def generate_remote_path( remote_name, repo_name ):
+    return get_mount_point(remote_name)+'/backup/gitrepos/'+repo_name+'.git'
