@@ -60,11 +60,13 @@ else:
 if 'local' not in g.remotes:
     print 'running: git remote add local '+full_local_path
     run_command('git remote add local '+full_local_path)
-    print 'running: git push local master'
-    run_command('git push local master')
     print
 else:
     print '- local remote exists'
+
+print '     push local'
+print '     running: git push local master'
+run_command('git push local master')
 
 remotes, rsymbols = get_remote_names()
 # print remotes

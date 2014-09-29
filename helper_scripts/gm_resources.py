@@ -5,7 +5,6 @@ from utility import get_folders, get_home
 def get_repositories():
     rep_names = [ "kortex",
               "kortex-ext-advanced",
-              "kortex-ext-calib",
               "kortex-ext-opencv",
               "cosmos",
               "karpet",
