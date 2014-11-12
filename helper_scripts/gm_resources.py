@@ -17,14 +17,15 @@ def get_repositories():
     app_names = get_folders( get_home() + '/src/cpp/applications')
     rep_names.extend( app_names )
 
-    rep_names.extend( [ "" ] )
-    app_extra_names = get_folders( get_home() + '/src/cpp/applications-beta' );
-    rep_names.extend( app_extra_names )
+    # rep_names.extend( [ "" ] )
+    # app_extra_names = get_folders( get_home() + '/src/cpp/applications-test' );
+    # rep_names.extend( app_extra_names )
 
     # rep_names.extend( [ "", "color-to-gray", "skanner", "levmar"] )
-    rep_names.extend( [ "", "shellscripts" ] )
-    rep_names.extend( [ "", "git_manager" ] )
-    rep_names.extend( [ "", "makefile-heaven" ] )
+    rep_names.extend( [ "", "shellscripts", "git_manager", "makefile-heaven" ] )
+    # rep_names.extend( [ "makefile-heaven" ] )
+
+    rep_names.extend( [ "", "applications-test" ] )
 
     return rep_names
 
@@ -50,6 +51,6 @@ def get_remote_names():
                 'pegasus',
                 'vault' ]
 
-    remote_symbols = [ 'H', 'L', 'A', 'N', 'B', 'C', 'G', 'E', 'P' ]
+    remote_symbols = [ 'H', 'L', 'A', 'N', 'B', 'C', 'G', 'E', 'P', 'V' ]
 
     return remotes, remote_symbols
