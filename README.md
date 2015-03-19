@@ -2,7 +2,7 @@ git-manager
 ===========
 
 An interactive command line interface for displaying the state of multiple git
-repositories in a single screen
+repositories in a single screen. ( screenshots below )
 
 - This scripts are for managing multiple git repositories from command line. It
 checks the state of 'push'es to remotes and reports the up-to-date'ness of them.
